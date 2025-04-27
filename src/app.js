@@ -12,6 +12,7 @@ const app = express();
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
+      'https://blog-platform-sigma-cyan.vercel.app',
       'http://localhost:3000',
       'http://localhost:5173'
     ];
