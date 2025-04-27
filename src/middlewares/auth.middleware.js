@@ -1,17 +1,9 @@
-// src/middlewares/auth.middleware.js
-
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
 const { JWT_SECRET } = require('../config/environment');
 
-/**
- * Auth middleware to authenticate requests
- * @param {Object} req
- * @param {Object} res
- * @param {Function} next
- */
 const auth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -57,11 +49,6 @@ const auth = async (req, res, next) => {
   }
 };
 
-/**
- * Role-based authorization middleware
- * @param {...String} roles - Allowed roles
- * @returns {Function}
- */
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {

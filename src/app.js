@@ -12,10 +12,10 @@ const app = express();
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
-      'http://localhost:3000',  // Example development origin
-      'https://yourdomain.com'  // Example production origin
+      'http://localhost:3000',
+      'http://localhost:5173'
     ];
-    
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -24,25 +24,17 @@ const corsOptions = {
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Access-Control-Allow-Methods',  
-    'Access-Control-Allow-Headers',  
-    'Access-Control-Allow-Origin'    
-  ]
 };
 
 app.use(cors(corsOptions));
 app.use(helmet());
-app.use(express.json({ limit: '10kb' })); 
-app.use(express.urlencoded({ extended: true, limit: '10kb' })); 
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(xss());
 app.use(mongoSanitize());
 app.use(compression());
 
-app.use('/api', routes);
+app.use('/api/v1', routes);
 app.get('/health', (req, res) => res.status(200).json({ status: 'OK' }));
 app.use((req, res) => {
   res.status(404).json({

@@ -1,13 +1,6 @@
-// src/middlewares/validate.middleware.js
-
 const Joi = require('joi');
 const ApiError = require('../utils/ApiError');
 
-/**
- * Middleware for request validation
- * @param {Object} schema
- * @returns {Function}
- */
 const validate = (schema) => (req, res, next) => {
   const validSchema = pick(schema, ['params', 'query', 'body']);
   const object = pick(req, Object.keys(validSchema));
@@ -27,12 +20,6 @@ const validate = (schema) => (req, res, next) => {
   return next();
 };
 
-/**
- * Create an object composed of the picked object properties
- * @param {Object} object
- * @param {string[]} keys
- * @returns {Object}
- */
 const pick = (object, keys) => {
   return keys.reduce((obj, key) => {
     if (object && Object.prototype.hasOwnProperty.call(object, key)) {

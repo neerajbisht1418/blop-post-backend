@@ -1,8 +1,9 @@
 const http = require('http');
-const mongoose = require('mongoose');
 const app = require('./app');
-const { MONGODB_URI, PORT } = require('./config/environment');
+const connectDB = require('./db/mongoose');
+const { PORT } = require('./config/environment');
 const socketInit = require('./socket/socket');
+const mongoose = require('mongoose');
 
 const port = PORT || 3000;
 const server = http.createServer(app);
@@ -15,15 +16,14 @@ const gracefulShutdown = (error, exitCode = 1) => {
   });
 };
 
-mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 20000,
-  socketTimeoutMS: 45000
-})
-  .then(() => {
-    console.log('✅ MongoDB connected');
-    server.listen(port, () => console.log(`🚀 Server running on port ${port}`));
-    process.on('uncaughtException', gracefulShutdown);
-    process.on('unhandledRejection', gracefulShutdown);
-    process.on('SIGTERM', () => gracefulShutdown(null, 0));
-  })
-  .catch((error) => gracefulShutdown(error));
+const startServer = async () => {
+  await connectDB();
+
+  server.listen(port, () => console.log(`🚀 Server running on port ${port}`));
+
+  process.on('uncaughtException', gracefulShutdown);
+  process.on('unhandledRejection', gracefulShutdown);
+  process.on('SIGTERM', () => gracefulShutdown(null, 0));
+};
+
+startServer();

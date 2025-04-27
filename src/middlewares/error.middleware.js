@@ -15,13 +15,6 @@ const errorConverter = (err, req, res, next) => {
   next(error);
 };
 
-/**
- * Error handler middleware
- * @param {ApiError} err
- * @param {Object} req
- * @param {Object} res
- * @param {Function} next
- */
 const errorHandler = (err, req, res, next) => {
   const { statusCode, message, isOperational, stack } = err;
 

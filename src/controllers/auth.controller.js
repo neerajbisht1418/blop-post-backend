@@ -4,11 +4,6 @@ const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
 const { JWT_SECRET, JWT_REFRESH_EXPIRATION_DAYS, JWT_ACCESS_EXPIRATION_MINUTES } = require('../config/environment');
 
-/**
- * Generate tokens (access and refresh)
- * @param {Object} user
- * @returns {Object}
- */
 const generateTokens = (user) => {
   const accessTokenExpires = JWT_ACCESS_EXPIRATION_MINUTES
   const refreshTokenExpires = JWT_REFRESH_EXPIRATION_DAYS
@@ -45,37 +40,26 @@ const generateTokens = (user) => {
   };
 };
 
-/**
- * Register a new user
- * @param {Object} req
- * @param {Object} res
- * @returns {Promise<User>}
- */
 const register = async (req, res, next) => {
   try {
     const { email, password, name } = req.body;
 
-    // Check if email is already taken
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new ApiError(409, 'Email already taken');
     }
 
-    // Create user
     const user = await User.create({
       name,
       email,
       password,
     });
 
-    // Generate tokens
     const tokens = generateTokens(user);
 
-    // Save refresh token
     user.refreshToken = tokens.refresh.token;
     await user.save();
 
-    // Remove password from response
     const userWithoutPassword = user.toObject();
     delete userWithoutPassword.password;
 
@@ -92,36 +76,24 @@ const register = async (req, res, next) => {
   }
 };
 
-/**
- * Login with email and password
- * @param {Object} req
- * @param {Object} res
- * @returns {Promise<User>}
- */
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       throw new ApiError(401, 'Incorrect email or password');
     }
-
-    // Check if password matches
     const isPasswordMatch = await user.isPasswordMatch(password);
     if (!isPasswordMatch) {
       throw new ApiError(401, 'Incorrect email or password');
     }
 
-    // Generate tokens
     const tokens = generateTokens(user);
 
-    // Save refresh token
     user.refreshToken = tokens.refresh.token;
     await user.save();
 
-    // Remove password from response
     const userWithoutPassword = user.toObject();
     delete userWithoutPassword.password;
 
@@ -138,12 +110,6 @@ const login = async (req, res, next) => {
   }
 };
 
-/**
- * Refresh auth tokens
- * @param {Object} req
- * @param {Object} res
- * @returns {Promise<Object>}
- */
 const refreshTokens = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
@@ -152,7 +118,6 @@ const refreshTokens = async (req, res, next) => {
       throw new ApiError(400, 'Refresh token is required');
     }
 
-    // Verify refresh token
     let tokenPayload;
     try {
       tokenPayload = jwt.verify(refreshToken, JWT_SECRET);
@@ -160,12 +125,10 @@ const refreshTokens = async (req, res, next) => {
       throw new ApiError(401, 'Invalid refresh token');
     }
 
-    // Check if token type is refresh
     if (tokenPayload.type !== tokenTypes.REFRESH) {
       throw new ApiError(401, 'Invalid token type');
     }
 
-    // Find user with refresh token
     const user = await User.findOne({
       _id: tokenPayload.userId,
       refreshToken,
@@ -175,10 +138,8 @@ const refreshTokens = async (req, res, next) => {
       throw new ApiError(401, 'User not found or token revoked');
     }
 
-    // Generate new tokens
     const tokens = generateTokens(user);
 
-    // Update refresh token
     user.refreshToken = tokens.refresh.token;
     await user.save();
 
@@ -194,17 +155,10 @@ const refreshTokens = async (req, res, next) => {
   }
 };
 
-/**
- * Logout
- * @param {Object} req
- * @param {Object} res
- * @returns {Promise<Object>}
- */
 const logout = async (req, res, next) => {
   try {
     const { userId } = req.user;
 
-    // Remove refresh token
     await User.findByIdAndUpdate(userId, { refreshToken: null });
 
     res.status(200).json({
@@ -216,12 +170,6 @@ const logout = async (req, res, next) => {
   }
 };
 
-/**
- * Get current user
- * @param {Object} req
- * @param {Object} res
- * @returns {Promise<Object>}
- */
 const getCurrentUser = async (req, res, next) => {
   try {
     const { userId } = req.user;
